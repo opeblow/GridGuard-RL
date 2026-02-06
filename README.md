@@ -227,7 +227,7 @@ cat logs/ppo_fast_20260205_153509/monitor.csv
 
 ---
 
-## 🧪 Running Tests
+## Running Tests
 
 All tests are runnable via Python's module execution syntax.
 
@@ -376,7 +376,7 @@ print(f"Mean Reward: {mean_reward:.2f} ± {std_reward:.2f}")
 
 ---
 
-## 📦 Module Structure
+##  Module Structure
 
 ### env/ - Power Grid Environment
 
@@ -584,7 +584,7 @@ python -c "from env.grid_env import GridEnv; env = GridEnv(); print('✓ Environ
 
 ---
 
-## 👥 Contributing
+##  Contributing
 
 Contributions are welcome! Please:
 
