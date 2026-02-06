@@ -12,7 +12,7 @@
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Key Features](#key-features)
@@ -29,19 +29,19 @@
 
 ---
 
-## 🎯 Overview
+##  Overview
 
 GridGuard RL is an advanced reinforcement learning framework for autonomous power grid frequency regulation. It uses Proximal Policy Optimization (PPO) to train agents that can stabilize grid frequency under various disturbances including generator failures, rapid load changes, and system shocks.
 
 **Inspired by industry-leading research from:**
-- 🔬 **Google DeepMind** - Advanced policy gradient methods
-- 🚀 **OpenAI** - PPO algorithm and training best practices
-- 💡 **Tesla** - Real-world grid stabilization applications
-- 🔋 **NREL** - Renewable energy integration research
+-  **Google DeepMind** - Advanced policy gradient methods
+-  **OpenAI** - PPO algorithm and training best practices
+- **Tesla** - Real-world grid stabilization applications
+-  **NREL** - Renewable energy integration research
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 - **High-Performance PPO Implementation** - Optimized for rapid iteration and production deployment
 - **Dual Training Modes** - Fast mode (2-5 min) for portfolio demo, Full mode (hours) for production
@@ -52,7 +52,7 @@ GridGuard RL is an advanced reinforcement learning framework for autonomous powe
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 GridGuard RL
@@ -79,7 +79,7 @@ GridGuard RL
 
 ---
 
-## 💾 Installation
+##  Installation
 
 ### Prerequisites
 - Python 3.9+
@@ -118,7 +118,7 @@ python -c "import gymnasium; import stable_baselines3; print('✓ Dependencies i
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Training a Model (Fast Mode - 2-5 minutes)
 
@@ -132,7 +132,7 @@ python -m training.train_ppo_optimized --mode fast
 Loading FAST mode configuration...
 Training PPO agent for power grid control...
 Timesteps: 50000/50000 [████████████████████] 100%
-✓ Training completed in 2m 34s
+Training completed in 2m 34s
 Model saved to: models/ppo_fast_20260205_153509/
 ```
 
@@ -155,7 +155,7 @@ evaluate_agent('models/ppo_fast_20260205_153509/', num_episodes=5)
 
 ---
 
-## 🎓 Training Models
+##  Training Models
 
 ### Using Optimized Training (Recommended)
 
@@ -278,11 +278,11 @@ Test Details:
   - Environment: 60-bus power grid
 
 Results:
-  ✓ Episode 1: Freq Deviation = 0.012 Hz (target < 0.05)
-  ✓ Episode 2: Freq Deviation = 0.008 Hz
-  ✓ Episode 3: Freq Deviation = 0.014 Hz
+   Episode 1: Freq Deviation = 0.012 Hz (target < 0.05)
+   Episode 2: Freq Deviation = 0.008 Hz
+   Episode 3: Freq Deviation = 0.014 Hz
 
-✓ Test PASSED
+ Test PASSED
 ```
 
 ### Running All Tests
@@ -297,7 +297,7 @@ python tests/run_all_tests.py
 
 ---
 
-## 📚 API Reference
+##  API Reference
 
 ### 1. Environment Module
 
@@ -372,17 +372,7 @@ print(f"Mean Reward: {mean_reward:.2f} ± {std_reward:.2f}")
 
 ### 3. Grid Environment Configuration
 
-```python
-from env.config import GridConfig
-
-config = GridConfig(
-    n_buses=60,                    # Number of grid buses
-    n_generators=15,               # Number of generators
-    frequency_nominal=60.0,        # Nominal frequency (Hz)
-    frequency_bounds=(59.0, 61.0), # Acceptable frequency range
-    episode_length=100,            # Steps per episode
-)
-```
+`
 
 ---
 
@@ -394,13 +384,13 @@ config = GridConfig(
 # Import modules
 from env.grid import Grid                    # Core grid dynamics
 from env.grid_env import GridEnv             # Gym environment wrapper
-from env.config import GridConfig            # Configuration class
+       
 ```
 
 **Key Classes:**
 - `Grid` - Power grid simulation engine
 - `GridEnv` - Gym-compatible environment
-- `GridConfig` - Environment configuration
+
 
 ### training/ - Model Training
 
@@ -432,7 +422,7 @@ python -m tests.test_05_load_shedding_recovery
 
 ---
 
-## 📊 Performance Benchmarks
+##  Performance Benchmarks
 
 ### Training Speed Comparison
 
@@ -454,7 +444,7 @@ Reward (Episode)      +2450        +3200        (higher = better)
 
 ---
 
-## 🔧 Advanced Usage
+##  Advanced Usage
 
 ### Custom Training Configuration
 
@@ -504,29 +494,29 @@ model.save('models/ppo_fast_resumed')
 
 ---
 
-## 📈 Expected Results
+## Expected Results
 
 ### After Fast Training (2-5 min)
 
 ```
-✓ Successful grid stabilization on test scenarios
-✓ ~95% frequency stability in normal operations
-✓ ~85% recovery rate from generator failures
-✓ Suitable for portfolio demonstrations
+ Successful grid stabilization on test scenarios
+ ~95% frequency stability in normal operations
+ ~85% recovery rate from generator failures
+ Suitable for portfolio demonstrations
 ```
 
 ### After Full Training (4-8 hours)
 
 ```
-✓ Production-grade performance
-✓ ~98% frequency stability
-✓ ~95% recovery rate from severe disturbances
-✓ Robust to varied load scenarios
+ Production-grade performance
+ ~98% frequency stability
+ ~95% recovery rate from severe disturbances
+ Robust to varied load scenarios
 ```
 
 ---
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Issue: "ModuleNotFoundError: No module named 'env'"
 
@@ -559,7 +549,7 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 ---
 
-## 📝 Directory Reference
+##  Directory Reference
 
 Quick commands for working with the codebase:
 
@@ -580,7 +570,7 @@ python -c "from env.grid_env import GridEnv; env = GridEnv(); print('✓ Environ
 
 ---
 
-## 🎓 Learning Resources
+##  Learning Resources
 
 ### Papers & References
 - Schulman et al., "Proximal Policy Optimization Algorithms" (OpenAI)
@@ -605,13 +595,13 @@ Contributions are welcome! Please:
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see LICENSE file for details.
 
 ---
 
-## 📞 Support
+##  Support
 
 For issues, questions, or suggestions:
 - Check the [Troubleshooting](#troubleshooting) section
