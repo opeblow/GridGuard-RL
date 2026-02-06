@@ -25,6 +25,24 @@ from training.train_config import FastModeConfig, FullModeConfig, TrainingConfig
 from training.early_stopping import PerformanceEarlyStoppingCallback
 
 
+def _make_json_serializable(obj):
+    """Recursively convert numpy types to native Python types so json.dump succeeds."""
+    # numpy scalar
+    if isinstance(obj, np.generic):
+        return obj.item()
+    # dict
+    if isinstance(obj, dict):
+        return {str(k): _make_json_serializable(v) for k, v in obj.items()}
+    # list/tuple
+    if isinstance(obj, (list, tuple)):
+        return [_make_json_serializable(v) for v in obj]
+    # numpy arrays
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    # other types (int/float/bool/None/str) - return as-is
+    return obj
+
+
 class TensorboardCallback:
     """Custom callback for logging additional metrics to Tensorboard"""
     def __init__(self):
@@ -271,7 +289,7 @@ def main(mode: str = "fast"):
         
         baselines = {'random': random_metrics, 'pid': pid_metrics}
         with open(f"{model_dir}/baseline_metrics.json", 'w') as f:
-            json.dump(baselines, f, indent=4)
+            json.dump(_make_json_serializable(baselines), f, indent=4)
     else:
         print(" [SKIPPED] Baseline evaluation (Fast mode)")
         print()
@@ -391,7 +409,8 @@ def main(mode: str = "fast"):
         model.learn(
             total_timesteps=config.TOTAL_TIMESTEPS,
             callback=callback_list,
-            progress_bar=False
+            progress_bar=False,
+            tb_log_name="ppo_fast"
         )
         
         print()
@@ -447,7 +466,7 @@ def main(mode: str = "fast"):
         }
         
         with open(f"{model_dir}/final_metrics.json", 'w') as f:
-            json.dump(all_metrics, f, indent=4)
+            json.dump(_make_json_serializable(all_metrics), f, indent=4)
         
         # Performance comparison
         if baselines:

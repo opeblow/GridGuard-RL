@@ -46,7 +46,7 @@ class FastModeConfig:
     
     # EARLY STOPPING CRITERIA
     EARLY_STOPPING_ENABLED = True
-    TARGET_BLACKOUT_RATE = 0.10         # Stop if blackout < 10%
+    TARGET_BLACKOUT_RATE = 0.05         # Stop if blackout < 5%
     TARGET_MEAN_FREQ_DEV = 0.5          # Stop if freq deviation < 0.5 Hz
     EARLY_STOPPING_PATIENCE = 3         # Eval cycles without improvement before stopping
     
