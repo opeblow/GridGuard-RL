@@ -103,7 +103,7 @@ def run_audit(model_path: str, steps: int = 200, output_path: str = "grid_perfor
 
 
 if __name__ == '__main__':
-	default_model_path = os.path.join('models', 'ppo_fast_20260206_210015', 'best_model')
+	default_model_path = os.path.join('models', 'ppo_fast_20260209_174720', 'best_model')
 	try:
 		run_audit(default_model_path, steps=200, output_path='grid_performance_audit.png')
 	except Exception as e:
