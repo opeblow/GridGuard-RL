@@ -55,7 +55,7 @@ class GridEnv(gym.Env):
         freq, rocof = self.grid.step()
 
         self.step_count += 1
-        reward = - (freq_error ** 2) * 8.0
+        reward = - (freq ** 2) * 8.0
         reward -= 4.0 * abs(rocof)
         reward -= 0.001 * abs(delta)
         reward += 0.5  
