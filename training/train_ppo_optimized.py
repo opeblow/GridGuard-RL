@@ -288,8 +288,16 @@ def main(mode: str = "fast"):
         print()
         
         baselines = {'random': random_metrics, 'pid': pid_metrics}
+        units_map = {
+            'mean_freq_deviation': 'Hz',
+            'blackout_rate': '%',
+            'uptime_percentage': '%',
+            'mean_reward': 'reward',
+            'std_reward': 'reward',
+            'mean_length': 'steps'
+        }
         with open(f"{model_dir}/baseline_metrics.json", 'w') as f:
-            json.dump(_make_json_serializable(baselines), f, indent=4)
+            json.dump(_make_json_serializable({'metrics': baselines, 'units': units_map}), f, indent=4)
     else:
         print(" [SKIPPED] Baseline evaluation (Fast mode)")
         print()
@@ -453,6 +461,15 @@ def main(mode: str = "fast"):
         print()
         
         # Save final metrics
+        units_map = {
+            'mean_freq_deviation': 'Hz',
+            'blackout_rate': '%',
+            'uptime_percentage': '%',
+            'mean_reward': 'reward',
+            'std_reward': 'reward',
+            'mean_length': 'steps'
+        }
+
         all_metrics = {
             'ppo': ppo_metrics,
             'baselines': baselines,
@@ -462,7 +479,8 @@ def main(mode: str = "fast"):
                 'total_timesteps': config.TOTAL_TIMESTEPS,
                 'eval_freq': config.EVAL_FREQ,
                 'early_stopping_enabled': config.EARLY_STOPPING_ENABLED,
-            }
+            },
+            'units': units_map
         }
         
         with open(f"{model_dir}/final_metrics.json", 'w') as f:
@@ -526,7 +544,7 @@ if __name__ == "__main__":
     
     try:
         import stable_baselines3
-        print(" stable-baselines3 found ✓\n")
+        print(" stable-baselines3 found \n")
     except ImportError:
         print(" stable-baselines3 not found")
         print(" Install with: pip install stable-baselines3[extra] tensorboard")

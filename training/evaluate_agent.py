@@ -1,10 +1,16 @@
 
 import argparse
 import json
+import logging
 import numpy as np
 import os
+import tempfile
 
 from env.grid_env import GridEnv
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 class StressEnv(GridEnv):
@@ -148,7 +154,11 @@ def evaluate_policies_on_scenarios(policies, scenarios, n_episodes=10):
             collapsed = [m.get('collapsed', False) for m in metrics]
             recovery_times = [m.get('recovery_time') for m in metrics if m.get('recovery_time') is not None]
 
+            # include per-episode records and aggregate collapse_threshold
+            collapse_thresholds = [m.get('collapse_threshold', 0.0) for m in metrics]
+
             results[name][scenario] = {
+                'episodes': metrics,  # raw per-episode records (reward, blackout, recovery_time, etc.)
                 'mean_reward': float(np.mean(rewards)),
                 'std_reward': float(np.std(rewards)),
                 'mean_length': float(np.mean(lengths)),
@@ -158,6 +168,7 @@ def evaluate_policies_on_scenarios(policies, scenarios, n_episodes=10):
                 'mean_max_freq_deviation': float(np.mean(max_devs)),
                 'mean_recovery_time': (float(np.mean(recovery_times)) if recovery_times else None),
                 'uptime_percentage': float((1.0 - np.mean(blackouts)) * 100.0),
+                'collapse_threshold': float(np.mean(collapse_thresholds) if collapse_thresholds else 0.0),
             }
 
     return results
@@ -184,39 +195,78 @@ def main(model_path=None, n_episodes=10, out_file='logs/stress_test_results.json
 
     scenarios = ['load_surge', 'noise', 'generator_outage']
 
-    print(f"Running stress tests for policies: {list(policies.keys())}")
+    logger.info("Running stress tests for policies: %s", list(policies.keys()))
     results = evaluate_policies_on_scenarios(policies, scenarios, n_episodes=n_episodes)
 
     # Save per-run results (backwards compatible)
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
-    with open(out_file, 'w') as f:
+    with open(out_file, "w") as f:
         json.dump(results, f, indent=2)
-    print(f"Stress test results saved to: {out_file}")
+    logger.info("Stress test results saved to: %s", out_file)
 
-    # Merge into logs/final_metrics.json under key 'stress_tests', preserving existing metrics
-    final_metrics_path = os.path.join(os.path.dirname(out_file), 'final_metrics.json')
+    # Merge into a final_metrics.json under model directory (if model provided) or logs folder
+    if model_path is not None and os.path.exists(model_path):
+        model_dir = os.path.dirname(model_path)
+        final_metrics_path = os.path.join(model_dir, "final_metrics.json")
+    else:
+        final_metrics_path = os.path.join(os.path.dirname(out_file), "final_metrics.json")
     final_data = {}
     if os.path.exists(final_metrics_path):
         try:
-            with open(final_metrics_path, 'r') as f:
+            with open(final_metrics_path, "r") as f:
                 final_data = json.load(f)
         except Exception:
             final_data = {}
 
-    final_data.setdefault('stress_tests', {})
-    # attach a timestamped entry for this run
+    final_data.setdefault("stress_tests", {})
+    # attach a timestamped entry for this run and include units mapping
     import datetime
-    run_id = datetime.datetime.utcnow().isoformat() + 'Z'
-    final_data['stress_tests'][run_id] = results
 
-    with open(final_metrics_path, 'w') as f:
-        json.dump(final_data, f, indent=2)
-    print(f"Merged stress test results into: {final_metrics_path}")
+    run_id = datetime.datetime.utcnow().isoformat() + "Z"
+
+    units_map = {
+        'mean_freq_deviation': 'Hz',
+        'mean_max_freq_deviation': 'Hz',
+        'blackout_rate': '%',
+        'collapse_rate': '%',
+        'uptime_percentage': '%',
+        'mean_reward': 'reward',
+        'std_reward': 'reward',
+        'mean_length': 'steps',
+        'mean_recovery_time': 'steps',
+    }
+
+    final_data["stress_tests"][run_id] = {
+        'results': results,
+        'units': units_map,
+        'scenarios': list(scenarios),
+    }
+
+    # write atomically to avoid partial writes
+    tmp_fd, tmp_path = tempfile.mkstemp(prefix="final_metrics_", dir=os.path.dirname(final_metrics_path))
+    try:
+        with os.fdopen(tmp_fd, "w") as tf:
+            json.dump(final_data, tf, indent=2)
+        os.replace(tmp_path, final_metrics_path)
+    finally:
+        if os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass
+
+    logger.info("Merged stress test results into: %s", final_metrics_path)
     for pname, pmetrics in results.items():
-        print('=' * 60)
-        print(f"Policy: {pname}")
+        logger.info("%s", "=" * 60)
+        logger.info("Policy: %s", pname)
         for scen, stats in pmetrics.items():
-            print(f"  Scenario: {scen} | Mean Reward: {stats['mean_reward']:.2f} | Blackout Rate: {stats['blackout_rate']:.1f}% | Mean Freq Dev: {stats['mean_freq_deviation']:.4f} Hz")
+            logger.info(
+                "  Scenario: %s | Mean Reward: %.2f | Blackout Rate: %.1f%% | Mean Freq Dev: %.4f Hz",
+                scen,
+                stats["mean_reward"],
+                stats["blackout_rate"],
+                stats["mean_freq_deviation"],
+            )
 
 
 if __name__ == '__main__':
