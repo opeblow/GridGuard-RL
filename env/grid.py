@@ -5,7 +5,6 @@ class Grid:
         self.damping=1.0
         self.dt=0.05
 
-        # Maximum generation change (MW) applied per environment step
         self.max_gen_change = 50.0
 
         self.reset()
@@ -32,8 +31,6 @@ class Grid:
             self.load=0
 
     def change_generation(self,delta):
-        # Apply generation change with a maximum ramp rate to make control smoother
-        # and to give the agent time to react. Clip delta per timestep.
         if delta is None:
             return
         applied = delta
@@ -47,8 +44,6 @@ class Grid:
             self.generation = 0
 
     def check_threshold(self):
-        # Return True when frequency falls below a safe threshold.
-        # Only emit a single alert per episode (prevents log spam).
         if self.frequency < 47.5:
             if not getattr(self, '_collapse_alerted', False):
                 print(f"Alert:Frequency at {self.frequency:.2f}Hz -Collapse Threshold Breached")
