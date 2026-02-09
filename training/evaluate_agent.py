@@ -14,7 +14,6 @@ logging.basicConfig(level=logging.INFO)
 
 
 class StressEnv(GridEnv):
-    """Wrapper that applies a scenario perturbation during an episode."""
     def __init__(self, scenario=None, **kwargs):
         super().__init__(**kwargs)
         self.scenario = scenario
@@ -28,16 +27,14 @@ class StressEnv(GridEnv):
     def step(self, action):
         self._step += 1
 
-        # Apply scenario perturbations BEFORE stepping the environment
         if self.scenario == 'load_surge' and self._step == 10:
-            # sudden large load increase
+            
             self.grid.change_load(500)
         elif self.scenario == 'noise':
-            # small random noise each step
             noise = float(np.random.normal(0.0, 50.0))
             self.grid.change_load(noise)
         elif self.scenario == 'generator_outage' and self._step == 10:
-            # large generator drop/outage
+           
             self.grid.generation = max(0.0, self.grid.generation - 800.0)
 
         return super().step(action)
@@ -51,10 +48,9 @@ def run_episode(policy_fn, env, deterministic=True):
     blackout = False
     freq_devs = []
     freq_history = []
-    # recovery/collapse heuristics
-    recovery_tol = 0.1  # Hz tolerance for considering frequency recovered
-    recovery_window = 3  # consecutive steps under tolerance
-    collapse_threshold = 2.0  # Hz deviation considered a collapse
+    recovery_tol = 0.1  
+    recovery_window = 3  
+    collapse_threshold = 2.0  
     perturb_step = 0
     if hasattr(env, 'scenario') and env.scenario in ('load_surge', 'generator_outage'):
         perturb_step = 10
@@ -73,13 +69,11 @@ def run_episode(policy_fn, env, deterministic=True):
         if terminated:
             blackout = True
 
-    # compute collapse and recovery
     max_dev = float(np.max(freq_devs) if freq_devs else 0.0)
     collapsed = bool(blackout or (max_dev > collapse_threshold))
 
     recovery_time = None
     if not collapsed and perturb_step is not None and perturb_step < len(freq_history):
-        # find first step after perturb when freq stays within tolerance for recovery_window
         for t in range(perturb_step, len(freq_history)):
             window = freq_history[t:t+recovery_window]
             if len(window) < recovery_window:
@@ -118,7 +112,6 @@ def pid_policy_factory(env, Kp=50.0, Ki=5.0, Kd=10.0):
         derivative = error - last_error
         last_error = error
         adjustment = Kp * error + Ki * integral + Kd * derivative
-        # action is delta generation; keep within action_space
         action = np.clip(adjustment, env.action_space.low[0], env.action_space.high[0])
         return np.array([action], dtype=np.float32)
 
@@ -140,12 +133,11 @@ def evaluate_policies_on_scenarios(policies, scenarios, n_episodes=10):
             metrics = []
             env = StressEnv(scenario=scenario)
             for _ in range(n_episodes):
-                # For each episode create a fresh env instance to avoid state leakage
                 env_instance = StressEnv(scenario=scenario)
                 m = run_episode(policy_fn, env_instance)
                 metrics.append(m)
 
-            # aggregate
+         
             rewards = [m['reward'] for m in metrics]
             lengths = [m['length'] for m in metrics]
             blackouts = [m['blackout'] for m in metrics]
@@ -153,12 +145,10 @@ def evaluate_policies_on_scenarios(policies, scenarios, n_episodes=10):
             max_devs = [m.get('max_freq_dev', 0.0) for m in metrics]
             collapsed = [m.get('collapsed', False) for m in metrics]
             recovery_times = [m.get('recovery_time') for m in metrics if m.get('recovery_time') is not None]
-
-            # include per-episode records and aggregate collapse_threshold
             collapse_thresholds = [m.get('collapse_threshold', 0.0) for m in metrics]
 
             results[name][scenario] = {
-                'episodes': metrics,  # raw per-episode records (reward, blackout, recovery_time, etc.)
+                'episodes': metrics, 
                 'mean_reward': float(np.mean(rewards)),
                 'std_reward': float(np.std(rewards)),
                 'mean_length': float(np.mean(lengths)),
@@ -177,14 +167,13 @@ def evaluate_policies_on_scenarios(policies, scenarios, n_episodes=10):
 def main(model_path=None, n_episodes=10, out_file='logs/stress_test_results.json'):
     policies = {}
 
-    # Random baseline
     tmp_env = StressEnv()
     policies['random'] = random_policy_factory(tmp_env)
 
-    # PID baseline
+   
     policies['pid'] = pid_policy_factory(tmp_env)
 
-    # PPO model (optional)
+    
     if model_path is not None and os.path.exists(model_path):
         try:
             from stable_baselines3 import PPO
@@ -197,14 +186,11 @@ def main(model_path=None, n_episodes=10, out_file='logs/stress_test_results.json
 
     logger.info("Running stress tests for policies: %s", list(policies.keys()))
     results = evaluate_policies_on_scenarios(policies, scenarios, n_episodes=n_episodes)
-
-    # Save per-run results (backwards compatible)
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
     with open(out_file, "w") as f:
         json.dump(results, f, indent=2)
     logger.info("Stress test results saved to: %s", out_file)
 
-    # Merge into a final_metrics.json under model directory (if model provided) or logs folder
     if model_path is not None and os.path.exists(model_path):
         model_dir = os.path.dirname(model_path)
         final_metrics_path = os.path.join(model_dir, "final_metrics.json")
@@ -219,7 +205,6 @@ def main(model_path=None, n_episodes=10, out_file='logs/stress_test_results.json
             final_data = {}
 
     final_data.setdefault("stress_tests", {})
-    # attach a timestamped entry for this run and include units mapping
     import datetime
 
     run_id = datetime.datetime.utcnow().isoformat() + "Z"
@@ -242,7 +227,6 @@ def main(model_path=None, n_episodes=10, out_file='logs/stress_test_results.json
         'scenarios': list(scenarios),
     }
 
-    # write atomically to avoid partial writes
     tmp_fd, tmp_path = tempfile.mkstemp(prefix="final_metrics_", dir=os.path.dirname(final_metrics_path))
     try:
         with os.fdopen(tmp_fd, "w") as tf:

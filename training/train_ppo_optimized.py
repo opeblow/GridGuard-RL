@@ -26,20 +26,18 @@ from training.early_stopping import PerformanceEarlyStoppingCallback
 
 
 def _make_json_serializable(obj):
-    """Recursively convert numpy types to native Python types so json.dump succeeds."""
-    # numpy scalar
+    
     if isinstance(obj, np.generic):
         return obj.item()
-    # dict
+   
     if isinstance(obj, dict):
         return {str(k): _make_json_serializable(v) for k, v in obj.items()}
-    # list/tuple
+    
     if isinstance(obj, (list, tuple)):
         return [_make_json_serializable(v) for v in obj]
-    # numpy arrays
+   
     if isinstance(obj, np.ndarray):
         return obj.tolist()
-    # other types (int/float/bool/None/str) - return as-is
     return obj
 
 
@@ -59,18 +57,7 @@ class TensorboardCallback:
 
 
 def evaluate_policy(model, env, n_eval_episodes=10, deterministic=True):
-    """
-    Evaluate a trained policy
     
-    Args:
-        model: Trained model
-        env: Environment to evaluate on
-        n_eval_episodes: Number of episodes to evaluate
-        deterministic: Use deterministic actions
-        
-    Returns:
-        dict: Evaluation metrics
-    """
     episode_rewards = []
     episode_lengths = []
     blackout_counts = []
@@ -116,7 +103,6 @@ def evaluate_policy(model, env, n_eval_episodes=10, deterministic=True):
 
 
 def evaluate_random_policy(env, n_eval_episodes=10):
-    """Evaluate a random policy as baseline"""
     episode_rewards = []
     episode_lengths = []
     blackout_counts = []
@@ -162,7 +148,6 @@ def evaluate_random_policy(env, n_eval_episodes=10):
 
 
 def evaluate_pid_policy(env, n_eval_episodes=10):
-    """Evaluate a PID controller as baseline"""
     episode_rewards = []
     episode_lengths = []
     blackout_counts = []
@@ -225,13 +210,6 @@ def evaluate_pid_policy(env, n_eval_episodes=10):
 
 
 def main(mode: str = "fast"):
-    """
-    Main training function with configurable mode
-    
-    Args:
-        mode: 'fast' for rapid iteration or 'full' for production quality
-    """
-    # Load configuration
     config = TrainingConfig.get_config(mode)
     
     print("=" * 80)
@@ -241,7 +219,6 @@ def main(mode: str = "fast"):
     print("=" * 80)
     print()
     
-    # Setup directories
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_dir = f"logs/ppo_{config.MODE_NAME.lower()}_{timestamp}"
     model_dir = f"models/ppo_{config.MODE_NAME.lower()}_{timestamp}"
@@ -252,7 +229,7 @@ def main(mode: str = "fast"):
     print(f" Model directory: {model_dir}")
     print()
     
-    # Create environments
+   
     print(" Creating environment...")
     env = GridEnv()
     env = Monitor(env, log_dir)
@@ -263,7 +240,7 @@ def main(mode: str = "fast"):
     print(" Environment created successfully")
     print()
     
-    # Baseline evaluation (skip in fast mode)
+    
     baselines = {}
     if not config.SKIP_BASELINE_EVAL:
         print("=" * 80)
@@ -302,7 +279,7 @@ def main(mode: str = "fast"):
         print(" [SKIPPED] Baseline evaluation (Fast mode)")
         print()
     
-    # Training configuration
+    
     print("=" * 80)
     print(" PPO HYPERPARAMETERS")
     print("=" * 80)
@@ -321,7 +298,6 @@ def main(mode: str = "fast"):
     print(f"   Eval episodes per cycle: {config.N_EVAL_EPISODES}")
     print()
     
-    # Early stopping configuration
     print("=" * 80)
     print(" EARLY STOPPING CONFIGURATION")
     print("=" * 80)
@@ -335,7 +311,6 @@ def main(mode: str = "fast"):
         print(f"   Status: DISABLED")
     print()
     
-    # Create and configure PPO model
     print(" Initializing PPO model...")
     model = PPO(
         "MlpPolicy",
@@ -358,12 +333,12 @@ def main(mode: str = "fast"):
     print(" Model initialized")
     print()
     
-    # Setup callbacks
+    
     print(" Setting up callbacks...")
     
     callbacks = []
     
-    # Evaluation callback
+    
     eval_callback = EvalCallback(
         eval_env,
         best_model_save_path=model_dir,
@@ -376,7 +351,6 @@ def main(mode: str = "fast"):
     )
     callbacks.append(eval_callback)
     
-    # Checkpoint callback
     checkpoint_callback = CheckpointCallback(
         save_freq=config.SAVE_FREQ,
         save_path=model_dir,
@@ -386,7 +360,7 @@ def main(mode: str = "fast"):
     )
     callbacks.append(checkpoint_callback)
     
-    # Early stopping callback
+    
     if config.EARLY_STOPPING_ENABLED:
         early_stopping = PerformanceEarlyStoppingCallback(
             target_blackout_rate=config.TARGET_BLACKOUT_RATE,
@@ -406,8 +380,6 @@ def main(mode: str = "fast"):
     else:
         print()
     print()
-    
-    # Training
     print("=" * 80)
     print(" STARTING TRAINING")
     print("=" * 80)
@@ -435,13 +407,11 @@ def main(mode: str = "fast"):
         print(" Model saved")
         return
     
-    # Save final model
+   
     final_model_path = f"{model_dir}/final_model"
     model.save(final_model_path)
     print(f" Final model saved to: {final_model_path}")
     print()
-    
-    # Final evaluation
     print("=" * 80)
     print(" FINAL EVALUATION (Best Model)")
     print("=" * 80)
@@ -460,7 +430,6 @@ def main(mode: str = "fast"):
         print(f"   Uptime: {ppo_metrics['uptime_percentage']:.1f}%")
         print()
         
-        # Save final metrics
         units_map = {
             'mean_freq_deviation': 'Hz',
             'blackout_rate': '%',
@@ -486,7 +455,7 @@ def main(mode: str = "fast"):
         with open(f"{model_dir}/final_metrics.json", 'w') as f:
             json.dump(_make_json_serializable(all_metrics), f, indent=4)
         
-        # Performance comparison
+        
         if baselines:
             print("=" * 80)
             print(" PERFORMANCE COMPARISON")

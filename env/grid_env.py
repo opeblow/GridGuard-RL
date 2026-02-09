@@ -12,14 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 class GridEnv(gym.Env):
-    """Gym environment wrapper for the `Grid` simulation.
-
-    Key improvements:
-    - explicit type hints on public methods
-    - logging instead of printing
-    - reward components normalized to prevent magnitude explosion
-    """
-
     metadata = {"render_modes": ["human"], "render_fps": 10}
 
     def __init__(self, episode_length: int = 200):
@@ -71,21 +63,20 @@ class GridEnv(gym.Env):
 
         self.step_count += 1
 
-        # Compute normalized reward components
+    
         freq_dev = freq - self.nominal_frequency
 
-        # Normalization / scale constants (tunable)
-        max_freq_dev = 5.0  # Hz (worst-case considered)
-        max_rocof = 20.0  # Hz/s (worst-case considered)
+        max_freq_dev = 5.0  
+        max_rocof = 20.0  
         max_action = float(self.max_delta) if hasattr(self, "max_delta") else 1.0
 
-        # Component-wise penalties (normalized to roughly [-1,0] when at scale)
+        
         freq_penalty = -((freq_dev) ** 2) / (max_freq_dev ** 2)
         rocof_penalty = -(abs(rocof) / max_rocof)
         action_penalty = -((abs(delta) / max_action) * 0.1)
         survival_bonus = 0.5
 
-        # Aggregate reward (components logged in info)
+        
         reward = freq_penalty + rocof_penalty + action_penalty + survival_bonus
 
         terminated = False
@@ -101,7 +92,7 @@ class GridEnv(gym.Env):
             },
         }
 
-        # Large penalty on threshold breach (episode termination)
+       
         if self.grid.check_threshold():
             terminated = True
             threshold_penalty = -10.0
@@ -111,7 +102,7 @@ class GridEnv(gym.Env):
         if self.step_count >= self.episode_length:
             truncated = True
 
-        # Clip final reward to avoid magnitude explosion
+       
         reward = float(np.clip(reward, -10.0, 10.0))
 
         obs = np.array([self.grid.frequency, float(self.grid.generation), float(self.grid.load)], dtype=np.float32)
