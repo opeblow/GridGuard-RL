@@ -10,8 +10,8 @@ class FastModeConfig:
     TOTAL_TIMESTEPS = 50_000           
     EVAL_FREQ = 5_000                 
     SAVE_FREQ = 10_000               
-    N_EVAL_EPISODES = 3                
-    FINAL_EVAL_EPISODES = 5           
+    N_EVAL_EPISODES = 5               
+    FINAL_EVAL_EPISODES = 10         
     
     SKIP_BASELINE_EVAL = True           
     SKIP_INTERMEDIATE_LOGGING = True   
@@ -35,13 +35,13 @@ class FastModeConfig:
     
     # EARLY STOPPING CRITERIA
     EARLY_STOPPING_ENABLED = True
-    TARGET_BLACKOUT_RATE = 0.05         
-    TARGET_MEAN_FREQ_DEV = 0.5         
-    EARLY_STOPPING_PATIENCE = 3        
+    TARGET_BLACKOUT_RATE = 0.15   
+    TARGET_MEAN_FREQ_DEV = 0.6      
+    EARLY_STOPPING_PATIENCE = 3      
     
     # DESCRIPTION
     MODE_NAME = "FAST"
-    EXPECTED_DURATION = "2-5 minutes"
+    EXPECTED_DURATION = "3-7 minutes"
     USE_CASE = "Rapid iteration, local testing, portfolio demo"
 
 
@@ -49,14 +49,14 @@ class FullModeConfig:
    
     
     # TRAINING PARAMETERS
-    TOTAL_TIMESTEPS = 500_000           
-    EVAL_FREQ = 10_000                
+    TOTAL_TIMESTEPS = 50_000           
+    EVAL_FREQ = 5_000               
     SAVE_FREQ = 50_000              
-    N_EVAL_EPISODES = 10              
-    FINAL_EVAL_EPISODES = 20          
+    N_EVAL_EPISODES = 10          
+    FINAL_EVAL_EPISODES = 20        
     
-    SKIP_BASELINE_EVAL = False          
-    SKIP_INTERMEDIATE_LOGGING = False   
+    SKIP_BASELINE_EVAL = False   
+    SKIP_INTERMEDIATE_LOGGING = False
     
     # PPO HYPERPARAMETERS
     PPO_PARAMS = {
@@ -67,23 +67,23 @@ class FullModeConfig:
         'gamma': 0.99,                 
         'gae_lambda': 0.95,             
         'clip_range': 0.2,              
-        'ent_coef': 0.01,               
+        'ent_coef': 0.02,               
         'vf_coef': 0.5,               
         'max_grad_norm': 0.5,           
         'policy_kwargs': {
-            'net_arch': [64, 64]        
+            'net_arch': [128, 128]        
         }
     }
     
     # EARLY STOPPING CRITERIA
     EARLY_STOPPING_ENABLED = True
-    TARGET_BLACKOUT_RATE = 0.05         
-    TARGET_MEAN_FREQ_DEV = 0.3          
+    TARGET_BLACKOUT_RATE = 0.10       
+    TARGET_MEAN_FREQ_DEV = 0.4         
     EARLY_STOPPING_PATIENCE = 5        
     
     # DESCRIPTION
     MODE_NAME = "FULL"
-    EXPECTED_DURATION = "30-60 minutes"
+    EXPECTED_DURATION = "40-90 minutes"
     USE_CASE = "Production deployment, comprehensive testing, final evaluation"
 
 

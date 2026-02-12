@@ -34,6 +34,11 @@ class GridEnv(gym.Env):
         self.observation_space = spaces.Box(low=obs_low, high=obs_high, dtype=np.float32)
 
         self.nominal_frequency = getattr(self.grid, "nominal_frequency", 50.0)
+        self.base_load = 1000.0
+        self.load_noise_std = 50.0
+        self.surge_probability = 0.02
+        self.surge_magnitude = 300.0
+        self.cummulative_load_change = 0.0
 
     def reset(self, *, seed: Any = None, options: Dict[str, Any] = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         """Reset the environment and underlying grid.
@@ -45,6 +50,10 @@ class GridEnv(gym.Env):
 
         self.step_count = 0
         self.grid.reset()
+        initial_load_var = np.random.uniform(-100,100)
+        self.grid.load = self.base_load + initial_load_var
+        self.grid.generation = self.grid.load
+        self.cummulative_load_change = 0.0
 
         obs = np.array([self.grid.frequency, float(self.grid.generation), float(self.grid.load)], dtype=np.float32)
         info: Dict[str, Any] = {}
@@ -58,67 +67,76 @@ class GridEnv(gym.Env):
 
         delta = float(np.clip(delta, -self.max_delta, self.max_delta))
         self.grid.change_generation(delta)
+        noise= np.random.normal(0,self.load_noise_std)
+        self.grid.change_load(noise)
+        self.cummulative_load_change += abs(noise)
 
-        freq, rocof = self.grid.step()
+        if np.random.random() < self.surge_probability:
+            surge = np.random.choice([-1,1]) * np.random.uniform(0.5,1.0) * self.surge_magnitude
+            self.grid.change_load(surge)
+            self.cummulative_load_change += abs(surge)
 
+        freq,rocof = self.grid.step()
         self.step_count += 1
-
-    
         freq_dev = freq - self.nominal_frequency
+        max_freq_dev = 2.0
+        max_rocof = 10.0
+        max_action = float(self.max_delta)
+        freq_penalty = -((freq_dev/max_freq_dev) ** 2) * 2.0
+        rocof_penalty = -(abs(rocof)/ max_rocof) * 0.5
+        action_penalty = -(abs(delta)/ max_action) * 0.05
 
-        max_freq_dev = 5.0  
-        max_rocof = 20.0  
-        max_action = float(self.max_delta) if hasattr(self, "max_delta") else 1.0
+        stability_bonus = 0.0
+        if abs(freq_dev) < 0.2:
+            stability_bonus = 0.3
 
-        
-        freq_penalty = -((freq_dev) ** 2) / (max_freq_dev ** 2)
-        rocof_penalty = -(abs(rocof) / max_rocof)
-        action_penalty = -((abs(delta) / max_action) * 0.1)
-        survival_bonus = 0.5
+        elif abs(freq_dev) < 0.5:
+            stability_bonus = 0.1
 
-        
-        reward = freq_penalty + rocof_penalty + action_penalty + survival_bonus
+        reward = freq_penalty + rocof_penalty + action_penalty + stability_bonus
 
         terminated = False
         truncated = False
-        info: Dict[str, Any] = {
-            "rocof": rocof,
-            "reward_components": {
-                "freq_penalty": float(freq_penalty),
-                "rocof_penalty": float(rocof_penalty),
-                "action_penalty": float(action_penalty),
-                "survival_bonus": float(survival_bonus),
-                "threshold_penalty": 0.0,
+        threshold_penalty = 0.0
+        info:Dict[str,Any]= {
+            "rocof":rocof,
+            "cummulative_load_change":float(self.cummulative_load_change),
+            "reward_components":{
+                "freq_penalty":float(freq_penalty),
+                "rocof_penalty":float(rocof_penalty),
+                "action_penalty":float(action_penalty),
+                "stability_bonus":float(stability_bonus),
+                "threshold_penalty":0.0,
+
             },
         }
-
-       
         if self.grid.check_threshold():
             terminated = True
             threshold_penalty = -10.0
             reward += threshold_penalty
             info["reward_components"]["threshold_penalty"] = float(threshold_penalty)
 
-        if self.step_count >= self.episode_length:
+        if self.step_count >=self.episode_length:
             truncated = True
 
-       
-        reward = float(np.clip(reward, -10.0, 10.0))
+        reward = float(np.clip(reward,-15.0,5.0))
+        obs = np.array([self.grid.frequency,float(self.grid.generation),float(self.grid.load)],dtype=np.float32)
 
-        obs = np.array([self.grid.frequency, float(self.grid.generation), float(self.grid.load)], dtype=np.float32)
+        return obs , float(reward), bool(terminated) ,bool(truncated) , info
+    
 
-        return obs, float(reward), bool(terminated), bool(truncated), info
-
-    def render(self, mode: str = "human") -> None:
+    def render(self,mode:str="human") -> None:
         logger.info(
-            "Step %03d | Freq: %.3f Hz | Gen: %.1f | Load: %.1f",
+            "Step %03d | Freq: %.3f Hz | Gen: %.1f |Load:%.1f",
             self.step_count,
             self.grid.frequency,
             self.grid.generation,
             self.grid.load,
         )
 
+    
     def close(self) -> None:
         return None
+    
 
-
+    

@@ -50,7 +50,7 @@ class Grid:
             if self.violation_time ==1:
                 print(f"Alert:Frequency at {self.frequency:.2f}Hz- collapse Threshold breached")
                 self._collapse_alerted = True
-            if self.violation_time > 10:
+            if self.violation_time > 5:
                 print(f"Blackout:Frequency remained below the threshold for  {self.violation_time}steps")
                 return True
             return False
