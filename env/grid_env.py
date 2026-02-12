@@ -29,8 +29,8 @@ class GridEnv(gym.Env):
             dtype=np.float32,
         )
 
-        obs_low = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-        obs_high = np.array([100.0, 2000.0, 10000.0], dtype=np.float32)
+        obs_low = np.array([45.0, 0.0,0.0])
+        obs_high = np.array([55.0, 3000.0, 3000.0])
         self.observation_space = spaces.Box(low=obs_low, high=obs_high, dtype=np.float32)
 
         self.nominal_frequency = getattr(self.grid, "nominal_frequency", 50.0)

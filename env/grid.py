@@ -5,7 +5,7 @@ class Grid:
         self.damping=1.0
         self.dt=0.05
 
-        self.max_gen_change = 50.0
+        self.max_gen_change = 200.0
 
         self.reset()
 
@@ -14,6 +14,7 @@ class Grid:
         self.load=1000
         self.generation=1000
         self._collapse_alerted = False
+        self.violation_time = 0
         return self.frequency
     
     def step(self):
@@ -45,11 +46,20 @@ class Grid:
 
     def check_threshold(self):
         if self.frequency < 47.5:
-            if not getattr(self, '_collapse_alerted', False):
-                print(f"Alert:Frequency at {self.frequency:.2f}Hz -Collapse Threshold Breached")
+            self.violation_time +=1
+            if self.violation_time ==1:
+                print(f"Alert:Frequency at {self.frequency:.2f}Hz- collapse Threshold breached")
                 self._collapse_alerted = True
-            return True
-        return False
+            if self.violation_time > 10:
+                print(f"Blackout:Frequency remained below the threshold for  {self.violation_time}steps")
+                return True
+            return False
+        else:
+            if self.violation_time > 0:
+                print(f"Recovery:Frequency restorefd to {self.frequency:.2f}Hz (was violated for {self.violation_time})")
+                self._collapse_alerted = False
+            self.violation_time = 0
+            return False              
     
     def perform_load_shedding(self,amount):
         print(f"Emergency:Shedding {amount} units of load to stabilize grid")
