@@ -1,0 +1,10 @@
+[tool.black]
+line-length = 88
+exclude = ['.venv', 'venv', 'myenv']
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 88
+extend-ignore = ["E203"]
