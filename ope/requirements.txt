@@ -1,0 +1,26 @@
+# GridGuard - Partially Autonomous Grid Stabilization
+# Core dependencies
+numpy
+pandas
+scipy
+
+# Power grid simulation
+pypsa
+
+# Reinforcement learning
+gymnasium
+stable-baselines3
+torch
+
+# Anomaly detection / ML
+scikit-learn
+
+# Visualization
+matplotlib
+plotly
+
+# Utilities
+tqdm
+pyyaml
+tensorboard
+rich
