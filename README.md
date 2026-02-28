@@ -116,7 +116,7 @@ GridGuard addresses these challenges through proactive anomaly detection, predic
 ```bash
 # Clone the repository
 git clone https://github.com/opeblow/GridGuard-RL
-cd GridGuard
+cd GridGuard/ope
 
 # Create virtual environment
 python -m venv myenv
@@ -258,26 +258,23 @@ Model saved to: ./models/final_model
 ##  Project Structure
 
 ```
-GridGuard/
+ope/
+├── src/
+│   └── gridguard/
+│       ├── main.py                 # Entry point & system orchestration
+│       ├── agent.py                # PPO agent & recommendation engine
+│       ├── anomaly_detector.py    # ML-based instability detection
+│       ├── environment.py         # IEEE 14-bus grid simulation (PyPSA)
+│       ├── mock_env.py             # Fast mock environment for testing
+│       └── scenario_generator.py   # Synthetic training scenarios
+├── models/                        # TraPO models
+ined P│   ├── best_model/                # Best checkpoint during training
+│   ├── checkpoints/              # Periodic model saves
+│   └── final_model.zip           # Final trained model
+├── eval_logs/                     # Evaluation metrics
+├── tensorboard/                   # Training visualizations
 ├── requirements.txt               # Python dependencies
-├── README.md                      # This file
-├── ope/
-│   ├── src/
-│   │   └── gridguard/
-│   │       ├── main.py                 # Entry point & system orchestration
-│   │       ├── agent.py                # PPO agent & recommendation engine
-│   │       ├── anomaly_detector.py    # ML-based instability detection
-│   │       ├── environment.py         # IEEE 14-bus grid simulation (PyPSA)
-│   │       ├── mock_env.py             # Fast mock environment for testing
-│   │       └── scenario_generator.py   # Synthetic training scenarios
-│   ├── models/                        # TraPO models
-│   │   ├── best_model/                # Best checkpoint during training
-│   │   ├── checkpoints/              # Periodic model saves
-│   │   └── final_model.zip           # Final trained model
-│   ├── eval_logs/                     # Evaluation metrics
-│   ├── tensorboard/                   # Training visualizations
-│   └── requirements.txt               # Python dependencies (legacy)
-└── .gitignore                        # Git ignore rules
+└── README.md                      # This file
 ```
 
 ---
@@ -382,7 +379,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **MOBOLAJI OPEYEMI**
 
-- GitHub: [@favourolaboye](https://github.com/opeblow)
+- GitHub: (https://github.com/opeblow)
 - Email: opeblow2021@gmail.com
 
 ---
