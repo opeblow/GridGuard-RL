@@ -1,7 +1,0 @@
-numpy
-gymnasium
-stable-baselines3
-matplotlib
-tensorboard
-tqdm
-rich
